@@ -52,7 +52,7 @@ class RunConfig:
     use_vector_dbs: bool = True
     use_bm25_db: bool = False
     llm_reranking: bool = False
-    llm_reranking_sample_size: int = 30
+    llm_reranking_sample_size: int = 10
     top_n_retrieval: int = 10
     parallel_requests: int = 1 # 并行的数量，需要限制，否则qwen-turbo会超出阈值
     team_email: str = "79250515615@yandex.com"

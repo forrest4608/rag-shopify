@@ -422,8 +422,7 @@ class RerankingPrompt:
 你将收到一个查询和一个检索到的文本块，请根据其与查询的相关性进行评分。
 
 评分说明：
-1. 推理：分析文本块与查询的关系，简要说明理由。
-2. 相关性分数（0-1，步长0.1）：
+1. 相关性分数（0-1，步长0.1）：
    0 = 完全无关
    0.1 = 极弱相关
    0.2 = 很弱相关
@@ -435,7 +434,7 @@ class RerankingPrompt:
    0.8 = 很相关
    0.9 = 高度相关
    1 = 完全匹配
-3. 只基于内容客观评价，不做假设。
+2. 只基于内容客观评价，不做假设。
 """
 
     system_prompt_rerank_multiple_blocks = """
@@ -443,8 +442,7 @@ class RerankingPrompt:
 你将收到一个查询和若干检索到的文本块，请分别对每个块进行相关性评分。
 
 评分说明：
-1. 推理：分析每个文本块与查询的关系，简要说明理由。
-2. 相关性分数（0-1，步长0.1）：
+1. 相关性分数（0-1，步长0.1）：
    0 = 完全无关
    0.1 = 极弱相关
    0.2 = 很弱相关
@@ -456,12 +454,11 @@ class RerankingPrompt:
    0.8 = 很相关
    0.9 = 高度相关
    1 = 完全匹配
-3. 只基于内容客观评价，不做假设。
+2. 只基于内容客观评价，不做假设。
 """
 
 class RetrievalRankingSingleBlock(BaseModel):
     """对检索到的单个文本块与查询的相关性进行评分。"""
-    reasoning: str = Field(description="分析该文本块，指出其关键信息及与查询的关系")
     relevance_score: float = Field(description="相关性分数，取值范围0到1，0表示完全无关，1表示完全相关")
 
 class RetrievalRankingMultipleBlocks(BaseModel):

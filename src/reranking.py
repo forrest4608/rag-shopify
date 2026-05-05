@@ -98,11 +98,10 @@ class LLMReranker:
                 data = json.loads(repaired)
                 # 校验字段
                 return {
-                    "relevance_score": float(data.get("relevance_score", 0.0)),
-                    "reasoning": data.get("reasoning", content)
+                    "relevance_score": float(data.get("relevance_score", 0.0))
                 }
             except:
-                return {"relevance_score": 0.0, "reasoning": content}
+                return {"relevance_score": 0.0}
         elif self.provider == "dashscope":
             model = self.model if self.model else "qwen-turbo"
             messages = [
@@ -110,7 +109,7 @@ class LLMReranker:
                 {"role": "user", "content": user_prompt},
             ]
             # 增加 Schema 提示到 Prompt
-            schema_prompt = "\n\n你的回答必须是JSON格式，包含以下字段：\n- reasoning: 分析该文本块与查询的关系\n- relevance_score: 相关性分数（0-1）"
+            schema_prompt = "\n\n你的回答必须是JSON格式，包含以下字段：\n- relevance_score: 相关性分数（0-1）"
             messages[0]["content"] += schema_prompt
             
             rsp = self.llm.Generation.call(
@@ -130,14 +129,13 @@ class LLMReranker:
                     repaired = repair_json(content)
                     data = json.loads(repaired)
                     return {
-                        "relevance_score": float(data.get("relevance_score", 0.0)),
-                        "reasoning": data.get("reasoning", content)
+                        "relevance_score": float(data.get("relevance_score", 0.0))
                     }
                 except:
                     # 尝试正则提取分数
                     score_match = re.search(r'relevance_score["\s:]+([\d\.]+)', content)
                     score = float(score_match.group(1)) if score_match else 0.0
-                    return {"relevance_score": score, "reasoning": content}
+                    return {"relevance_score": score}
             else:
                 raise RuntimeError(f"DashScope返回错误: {rsp.message}")
         else:
@@ -186,12 +184,14 @@ class LLMReranker:
                 repaired = repair_json(content)
                 data = json.loads(repaired)
                 rankings = data.get("block_rankings", [])
+                if not rankings and "scores" in data:
+                    rankings = [{"relevance_score": score} for score in data["scores"]]
                 if len(rankings) < len(retrieved_documents):
                     for _ in range(len(retrieved_documents) - len(rankings)):
-                        rankings.append({"relevance_score": 0.0, "reasoning": "Missing"})
+                        rankings.append({"relevance_score": 0.0})
                 return {"block_rankings": rankings[:len(retrieved_documents)]}
             except:
-                return {"block_rankings": [{"relevance_score": 0.0, "reasoning": content} for _ in retrieved_documents]}
+                return {"block_rankings": [{"relevance_score": 0.0} for _ in retrieved_documents]}
         elif self.provider == "dashscope":
             model = self.model if self.model else "qwen-turbo"
             messages = [
@@ -199,7 +199,7 @@ class LLMReranker:
                 {"role": "user", "content": user_prompt},
             ]
             # 增加 Schema 提示到 Prompt
-            schema_prompt = "\n\n你的回答必须是JSON格式，结构如下：\n{\"block_rankings\": [{\"reasoning\": \"...\", \"relevance_score\": 0.8}, ...]}"
+            schema_prompt = "\n\n你的回答必须是JSON格式，结构如下：\n{\"block_rankings\": [{\"relevance_score\": 0.8}, ...]}"
             messages[0]["content"] += schema_prompt
 
             rsp = self.llm.Generation.call(
@@ -222,11 +222,11 @@ class LLMReranker:
                     rankings = data.get("block_rankings", [])
                     if len(rankings) < len(retrieved_documents):
                         for _ in range(len(retrieved_documents) - len(rankings)):
-                            rankings.append({"relevance_score": 0.0, "reasoning": "Missing"})
+                            rankings.append({"relevance_score": 0.0})
                     return {"block_rankings": rankings[:len(retrieved_documents)]}
                 except:
                     # 兜底
-                    return {"block_rankings": [{"relevance_score": 0.0, "reasoning": content} for _ in retrieved_documents]}
+                    return {"block_rankings": [{"relevance_score": 0.0} for _ in retrieved_documents]}
             else:
                 raise RuntimeError(f"DashScope返回错误: {rsp.message}")
         else:
@@ -263,8 +263,8 @@ class LLMReranker:
                 )
                 return doc_with_score
 
-            # 多线程并行处理，max_workers=1 保证 dashscope LLM 串行调用，避免 QPS 超限
-            with ThreadPoolExecutor(max_workers=1) as executor:
+            # 多线程并行处理
+            with ThreadPoolExecutor(max_workers=2) as executor:
                 all_results = list(executor.map(process_single_doc, documents))
                 
         else:
@@ -284,8 +284,7 @@ class LLMReranker:
                     
                     for _ in range(len(batch) - len(block_rankings)):
                         block_rankings.append({
-                            "relevance_score": 0.0, 
-                            "reasoning": "Default ranking due to missing LLM response"
+                            "relevance_score": 0.0
                         })
                 
                 for doc, rank in zip(batch, block_rankings):
@@ -299,8 +298,8 @@ class LLMReranker:
                     results.append(doc_with_score)
                 return results
 
-            # 多线程并行处理，max_workers=1 保证 dashscope LLM 串行调用，避免 QPS 超限
-            with ThreadPoolExecutor(max_workers=1) as executor:
+            # 多线程并行处理
+            with ThreadPoolExecutor(max_workers=2) as executor:
                 batch_results = list(executor.map(process_batch, doc_batches))
             
             # 扁平化结果
