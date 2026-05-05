@@ -39,18 +39,24 @@ class BM25Ingestor:
             # 加载报告
             with open(report_path, 'r', encoding='utf-8') as f:
                 report_data = json.load(f)
+            
+            sha1_name = report_data["metainfo"]["sha1_name"]
+            output_file = output_dir / f"{sha1_name}.pkl"
+            
+            # 增量检查：如果索引已存在则跳过
+            if output_file.exists():
+                # print(f"Skipping {sha1_name}, BM25 index already exists.")
+                continue
                 
             # 提取文本块并创建BM25索引
             text_chunks = [chunk['text'] for chunk in report_data['content']['chunks']]
             bm25_index = self.create_bm25_index(text_chunks)
             
-            # 保存BM25索引，文件名用sha1_name
-            sha1_name = report_data["metainfo"]["sha1_name"]
-            output_file = output_dir / f"{sha1_name}.pkl"
+            # 保存BM25索引
             with open(output_file, 'wb') as f:
                 pickle.dump(bm25_index, f)
                 
-        print(f"Processed {len(all_report_paths)} reports")
+        print(f"Processed {len(all_report_paths)} reports for BM25")
 
 # VectorDBIngestor：向量库构建与保存工具
 class VectorDBIngestor:
@@ -135,12 +141,19 @@ class VectorDBIngestor:
         all_report_paths = list(all_reports_dir.glob("*.json"))
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        for report_path in tqdm(all_report_paths, desc="Processing reports"):
+        for report_path in tqdm(all_report_paths, desc="Processing reports for FAISS"):
             with open(report_path, 'r', encoding='utf-8') as file:
                 report_data = json.load(file)
-            index = self._process_report(report_data)
+            
             sha1_name = report_data["metainfo"]["sha1_name"]
             faiss_file_path = output_dir / f"{sha1_name}.faiss"
+            
+            # 增量检查：如果索引已存在则跳过
+            if faiss_file_path.exists():
+                # print(f"Skipping {sha1_name}, FAISS index already exists.")
+                continue
+
+            index = self._process_report(report_data)
             faiss.write_index(index, str(faiss_file_path))
 
-        print(f"Processed {len(all_report_paths)} reports")
+        print(f"Processed {len(all_report_paths)} reports for FAISS")
