@@ -158,7 +158,14 @@ class PDFParser:
         if input_doc_paths is None and doc_dir is not None:
             input_doc_paths = list(doc_dir.glob("*.pdf"))
         
+        if self.output_dir is not None:
+            input_doc_paths = [p for p in input_doc_paths if not (self.output_dir / f"{p.stem}.json").exists()]
+            
         total_docs = len(input_doc_paths)
+        if total_docs == 0:
+            _log.info("No new documents to process. Skipping conversion.")
+            return
+            
         _log.info(f"Starting to process {total_docs} documents")
         
         conv_results = self.convert_documents(input_doc_paths)
@@ -195,7 +202,14 @@ class PDFParser:
         if input_doc_paths is None and doc_dir is not None:
             input_doc_paths = list(doc_dir.glob("*.pdf"))
 
+        if self.output_dir is not None:
+            input_doc_paths = [p for p in input_doc_paths if not (self.output_dir / f"{p.stem}.json").exists()]
+
         total_pdfs = len(input_doc_paths)
+        if total_pdfs == 0:
+            _log.info("No new documents to process. Skipping parallel conversion.")
+            return
+            
         _log.info(f"Starting parallel processing of {total_pdfs} documents")
         
         cpu_count = multiprocessing.cpu_count()

@@ -1,5 +1,6 @@
 import click
 from pathlib import Path
+import uvicorn
 from src.pipeline import Pipeline, configs, preprocess_configs
 
 @click.group()
@@ -56,6 +57,14 @@ def process_questions(config):
     
     click.echo(f"Processing questions (config={config})...")
     pipeline.process_questions()
+
+@cli.command()
+@click.option('--host', default='0.0.0.0', help='Host to bind to')
+@click.option('--port', default=8000, help='Port to bind to')
+def serve(host, port):
+    """Start the RAG API microservice."""
+    click.echo(f"Starting API server on {host}:{port}...")
+    uvicorn.run("src.api.main:app", host=host, port=port, reload=False)
 
 if __name__ == '__main__':
     cli()
