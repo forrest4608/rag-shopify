@@ -22,7 +22,7 @@ This is competition code - it's scrappy but it works. Some notes before you dive
 - You'll need your own API keys for OpenAI/Gemini
 - GPU helps a lot with PDF parsing (I used 4090)
 
-If you're looking for production-ready code, this isn't it. But if you want to explore different RAG techniques and their implementations - check it out!
+**🎉 Update (May 2026):** This project has now been extended from a batch-only script into a **modern, stateful FastAPI Microservice**. It features hot-reloading memory-resident vector indices and end-to-end incremental PDF ingestion capabilities, taking it one step closer to a production-ready enterprise RAG service!
 
 ## Quick Start
 
@@ -67,6 +67,16 @@ cd .\data\test_set\
 python ..\..\main.py process-questions --config max_nst_o3m
 ```
 
+### API Microservice (New!)
+
+To start the real-time API server with hot-loaded RAG indices, run the `serve` command. This enables the `/query` and `/ingest` endpoints for interacting with the pipeline seamlessly via HTTP:
+
+```bash
+cd .\data\test_set\
+python ..\..\main.py serve --port 8000
+```
+For full API details, see the [API Reference](docs/API_REFERENCE.md).
+
 ### CLI Commands
 
 Get help on available commands:
@@ -80,6 +90,7 @@ Available commands:
 - `serialize-tables` - Process tables in parsed reports
 - `process-reports` - Run the full pipeline on parsed reports
 - `process-questions` - Process questions using specified config
+- `serve` - **(New)** Start the FastAPI microservice on the specified host and port
 
 Each command has its own options. For example:
 ```bash
