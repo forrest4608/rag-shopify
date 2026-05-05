@@ -103,3 +103,11 @@ AI assumes uniform output schemas across different third-party API wrappers (e.g
 
 Rule:
 When switching or handling LLM APIs, verify the exact return object structure. Different providers may wrap structured JSON outputs inside Markdown blocks instead of returning dictionaries.
+
+### Readme Hygiene
+
+Trigger:
+An iteration introduces new commands, architectures, or significant features, and the review phase is reached.
+
+Rule:
+Proactively update the `README.md` file with the latest changes, usage commands, or architecture descriptions before concluding the iteration. Do not wait for the user to ask.
