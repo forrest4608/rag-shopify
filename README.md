@@ -109,6 +109,31 @@ python main.py process-reports --config ser_tab
 
 Check `pipeline.py` for more configs and detils on them.
 
+## Admin Console (New!)
+
+The system now includes an **Industrial-grade React Admin Console** with a professional BI dashboard interface. It allows you to:
+- Perform real-time AI Q&A with deep reasoning and document source tracing.
+- Manage your knowledge base (Upload, Delete, List documents).
+- Track ingestion progress in real-time via WebSockets.
+- Preview original PDF reports directly in the browser.
+
+### Starting the Console
+
+1. **Start the Backend API**:
+   ```bash
+   source venv/bin/activate
+   python main.py serve --port 8000
+   ```
+
+2. **Start the React Frontend**:
+   ```bash
+   cd frontend
+   npm install   # If first time
+   npm run dev
+   ```
+   Open [http://localhost:5173](http://localhost:5173) to access the console.
+
+
 ## License
 
 MIT
